@@ -25,10 +25,7 @@ const props = defineProps({
 onMounted(() => {
   const swiper = new Swiper(`.${props.swiperclass}`, {
     slidesPerView: props.perslide,
-    spaceBetween: 30,
     freeMode: true,
   })
 })
 </script>
-
-<style lang="less" scoped></style>

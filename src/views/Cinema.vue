@@ -13,7 +13,7 @@
       </template>
     </van-nav-bar>
     <!-- 影院列表 -->
-    <div class="cinema" :style="{ height: height }">
+    <div class="cinema">
       <ul>
         <li v-for="item in cinemaList" :key="item.cinemaId">
           <div>{{ item.name }}</div>
@@ -43,29 +43,24 @@ const cityName = computed(() => store.state.city.cityName)
 
 // 请求影院列表数据
 const getCinemaList = () => store.dispatch("getCinemaList", cityId.value)
-// 计算列表高度
-const calculateHeight = () => {
-  height.value = document.documentElement.clientHeight - 106 + "px"
-}
+
 // 初始化滚动条
 const initializeScroll = () => {
-  nextTick(() => {
-    new BScroll(".cinema", {
-      scrollbar: {
-        fade: true,
-      },
-      mouseWheel: true,
-    })
+  new BScroll(".cinema", {
+    scrollbar: {
+      fade: true,
+    },
+    mouseWheel: true,
   })
 }
 
 onMounted(() => {
-  getCinemaList(cityId.value)
-  calculateHeight()
-})
-watch(cinemaList, () => {
-  calculateHeight()
-  initializeScroll()
+  // 无需监听 cinemaList 的变化
+  // 理由是切换路由选择城市，只会渲染一次
+  getCinemaList(cityId.value).then(() => {
+    // 加载完 cinamaList 以后再初始化 scroll 组件
+    initializeScroll()
+  })
 })
 
 // 点击nav-bar右侧搜索 跳转到Search.vue页面
@@ -82,6 +77,7 @@ const onClickLeft = () => {
 .cinema {
   overflow: hidden;
   position: relative;
+  height: calc(100vh - 106px);
   li {
     padding: 5px;
     .address {

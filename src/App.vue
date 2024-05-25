@@ -1,7 +1,6 @@
 <template>
   <div>
     <router-view></router-view>
-    <!-- tabbar -->
     <TabBar v-if="isShowTabbar()" />
   </div>
 </template>

@@ -61,7 +61,7 @@
           <img
             class="avatar-img"
             :src="item.avatarAddress"
-            style="width: 95px; height: 115px"
+            style="width: 85px; height: 110px"
             alt=""
           />
           <div class="cast-info">
@@ -83,7 +83,7 @@
           <img
             class="photo-img"
             :src="item"
-            style="width: 200px; height: 125px; margin-right: 10px"
+            style="width: 190px; height: 125px"
             alt=""
             @click="handlePreview(index)"
           />
@@ -207,15 +207,12 @@ const handlePreview = (index) => {
       margin: 0px 0px 20px 10px;
     }
     .actor-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
       .avatar-img {
         object-fit: cover;
         border-radius: 10px;
-      }
-      :first-child {
-        margin-left: 5px;
-      }
-      :last-child {
-        margin-left: 5px;
       }
       .cast-info {
         width: 90px;
