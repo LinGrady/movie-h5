@@ -25,7 +25,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted, computed, nextTick } from "vue"
+import { ref, onMounted, computed, nextTick, onActivated, watch } from "vue"
 import { useRouter } from "vue-router"
 import { useStore } from "vuex"
 import { NavBar } from "vant"
@@ -43,11 +43,12 @@ const cityName = computed(() => store.state.city.cityName)
 
 // 请求影院列表数据
 const getCinemaList = () => store.dispatch("getCinemaList", cityId.value)
-onMounted(() => {
+// 计算列表高度
+const calculateHeight = () => {
   height.value = document.documentElement.clientHeight - 106 + "px"
-
-  getCinemaList(cityId.value)
-
+}
+// 初始化滚动条
+const initializeScroll = () => {
   nextTick(() => {
     new BScroll(".cinema", {
       scrollbar: {
@@ -56,6 +57,15 @@ onMounted(() => {
       mouseWheel: true,
     })
   })
+}
+
+onMounted(() => {
+  getCinemaList(cityId.value)
+  calculateHeight()
+})
+watch(cinemaList, () => {
+  calculateHeight()
+  initializeScroll()
 })
 
 // 点击nav-bar右侧搜索 跳转到Search.vue页面
