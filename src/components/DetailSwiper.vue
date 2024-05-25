@@ -1,5 +1,5 @@
 <template>
-  <div class="swiper" :class="props.slideClass">
+  <div class="swiper" :class="props.swiperclass">
     <div class="swiper-wrapper">
       <slot></slot>
     </div>
@@ -12,13 +12,21 @@ import Swiper from "swiper"
 import "swiper/css"
 
 const props = defineProps({
-  perslide: Number,
-  slideClass: String,
+  perslide: {
+    type: Number,
+    default: 1,
+  },
+  swiperclass: {
+    type: String,
+    default: "swiper-container",
+  },
 })
 
 onMounted(() => {
-  const swiper = new Swiper(`.${props.slideClass}`, {
+  const swiper = new Swiper(`.${props.swiperclass}`, {
     slidesPerView: props.perslide,
+    spaceBetween: 30,
+    freeMode: true,
   })
 })
 </script>

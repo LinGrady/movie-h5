@@ -52,7 +52,7 @@
     <!-- 卡司 -->
     <div class="cast">
       <div class="cast-title">演职人员</div>
-      <detail-swiper :perslide="4" slideClass="swiperActors">
+      <detail-swiper :perslide="4" swiperclass="swiperActors">
         <div
           class="swiper-slide actor-item"
           v-for="item in filmInfo.actors"
@@ -74,7 +74,7 @@
     <!-- 剧照 -->
     <div class="photo">
       <div class="photo-title">剧照</div>
-      <detail-swiper :perslide="2" slideClass="swiperPhotos">
+      <detail-swiper :perslide="2" swiperclass="swiperPhotos">
         <div
           class="swiper-slide photo-item"
           v-for="(item, index) in filmInfo.photos"
@@ -204,14 +204,21 @@ const handlePreview = (index) => {
     .cast-title {
       font-size: 19px;
       color: rgb(72, 71, 71);
-      margin-bottom: 20px;
+      margin: 0px 0px 20px 10px;
     }
     .actor-item {
-      margin: 0 2px;
       .avatar-img {
         object-fit: cover;
+        border-radius: 10px;
+      }
+      :first-child {
+        margin-left: 5px;
+      }
+      :last-child {
+        margin-left: 5px;
       }
       .cast-info {
+        width: 90px;
         color: rgb(152, 151, 151);
         display: flex;
         flex-direction: column;
@@ -229,7 +236,7 @@ const handlePreview = (index) => {
     .photo-title {
       font-size: 19px;
       color: rgb(72, 71, 71);
-      margin-bottom: 20px;
+      margin: 0px 0px 20px 10px;
     }
     .photo-item {
       margin-right: 5px;
