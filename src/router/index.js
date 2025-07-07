@@ -25,6 +25,14 @@ const routes = [
     path: "/cinema/city",
     component: () => import("../views/City.vue"),
   },
+  {
+    path: "/cinema/:id",
+    component: () => import("../views/CinemaDetail.vue"),
+  },
+  {
+    path: "/schedule/:scheduleId/seat",
+    component: () => import("../views/ScheduleDetail.vue"),
+  },
   { path: "/login", component: () => import("../views/Login.vue") },
   { path: "/detail", component: () => import("../views/Detail.vue") },
   { path: "/film/search", component: () => import("../views/FilmSearch.vue") },

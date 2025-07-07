@@ -15,9 +15,24 @@
     <!-- 影院列表 -->
     <div class="cinema">
       <ul>
-        <li v-for="item in cinemaList" :key="item.cinemaId">
-          <div>{{ item.name }}</div>
-          <div class="address">{{ item.address }}</div>
+        <li 
+          v-for="item in cinemaList" 
+          :key="item.cinemaId || item.id" 
+          @click="handleCinemaClick(item)"
+          class="cinema-item"
+        >
+          <div class="cinema-content">
+            <div class="cinema-main">
+              <div class="cinema-name">{{ item.name }}</div>
+              <div class="cinema-address">{{ item.address }}</div>
+              <div v-if="item.lowestPrice" class="cinema-price">
+                最低价 ¥{{ (item.lowestPrice / 100).toFixed(2) }}
+              </div>
+            </div>
+            <div class="cinema-action">
+              <van-icon name="arrow" />
+            </div>
+          </div>
         </li>
       </ul>
     </div>
@@ -42,7 +57,7 @@ const cityId = computed(() => store.state.city.cityId)
 const cityName = computed(() => store.state.city.cityName)
 
 // 请求影院列表数据
-const getCinemaList = () => store.dispatch("getCinemaList", cityId.value)
+const getCinemaList = () => store.dispatch("getCinemaList", { cityId: cityId.value })
 
 // 初始化滚动条
 const initializeScroll = () => {
@@ -71,6 +86,12 @@ const onClickRight = () => {
 const onClickLeft = () => {
   router.push("/cinema/city")
 }
+
+// 点击影院跳转详情页
+const handleCinemaClick = (cinema) => {
+  const cinemaId = cinema.cinemaId || cinema.id
+  router.push(`/cinema/${cinemaId}`)
+}
 </script>
 
 <style lang="less" scoped>
@@ -78,11 +99,65 @@ const onClickLeft = () => {
   overflow: hidden;
   position: relative;
   height: calc(100vh - 106px);
-  li {
-    padding: 5px;
-    .address {
-      font-size: 12px;
-      color: gray;
+  background-color: #fff;
+  
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .cinema-item {
+    border-bottom: 1px solid #ebedf0;
+    cursor: pointer;
+    
+    &:last-child {
+      border-bottom: none;
+    }
+    
+    &:active {
+      background-color: #f7f8fa;
+    }
+    
+    .cinema-content {
+      display: flex;
+      align-items: center;
+      padding: 16px;
+      
+      .cinema-main {
+        flex: 1;
+        min-width: 0;
+        
+        .cinema-name {
+          font-size: 16px;
+          font-weight: 500;
+          color: #191a1b;
+          margin-bottom: 6px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        
+        .cinema-address {
+          font-size: 13px;
+          color: #646566;
+          margin-bottom: 4px;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        
+        .cinema-price {
+          font-size: 12px;
+          color: #ff6b35;
+          font-weight: 500;
+        }
+      }
+      
+      .cinema-action {
+        margin-left: 12px;
+        color: #c8c9cc;
+      }
     }
   }
 }
