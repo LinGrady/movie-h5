@@ -1,122 +1,294 @@
 <template>
-  <div>
+  <div class="now-playing-container">
     <van-list
       v-model:loading="loading"
       :finished="finished"
       :immediate-check="false"
-      finished-text="没有更多了"
+      finished-text="- 无更多电影 -"
       @load="onLoad"
       style="margin-bottom: 60px"
     >
       <van-cell
-        v-for="item in dataList"
+        v-for="item in filmList"
         :key="item.filmId"
-        @click="handleClick(item.filmId)"
+        class="film-item"
+        @click="handleFilmClick(item.filmId)"
       >
-        <div class="movie-img">
-          <img :src="item.poster" alt="" />
-        </div>
-        <div class="movie-info">
-          <h3>{{ item.name }}</h3>
-          <p class="actor">主演： {{ actorFilter(item.actors) }}</p>
-          <p>{{ item.nation }} | {{ item.runtime }} 分钟</p>
+        <div class="film-content">
+          <!-- 电影海报 -->
+          <div class="film-poster">
+            <img :src="item.poster" :alt="item.name" />
+          </div>
+          
+          <!-- 电影信息 -->
+          <div class="film-info">
+            <div class="film-title">
+              <span class="name">{{ item.name }}</span>
+              <span v-if="item.item" class="item-tag">{{ item.item.name }}</span>
+            </div>
+            
+            <div class="film-actors">
+              <span class="label">主演：{{ formatActors(item.actors) }}</span>
+            </div>
+            
+            <div class="film-meta">
+              <span class="label">{{ item.nation }} | {{ item.runtime }}分钟</span>
+            </div>
+            
+            <!-- 评分显示 -->
+            <div v-if="item.grade" class="film-rating">
+              <span class="grade">{{ item.grade }}</span>
+              <span class="grade-text">分</span>
+            </div>
+          </div>
+          
+          <!-- 购票按钮 -->
+          <div class="ticket-btn" @click.stop="handleTicket(item.filmId)">
+            购票
+          </div>
         </div>
       </van-cell>
     </van-list>
+    
+    <!-- 错误状态 -->
+    <div v-if="showError" class="error-cover">
+      <div class="error-content">
+        <van-icon name="warning-o" size="60" color="#ccc" />
+        <p>访问异常，请稍后再试</p>
+        <van-button type="primary" @click="retry">重试</van-button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script setup>
-import { ref, onMounted } from "vue"
+import { ref, computed, onMounted } from "vue"
 import { useRouter } from "vue-router"
-import { List } from "vant"
-import http from "../../utils"
+import { useStore } from "vuex"
+import { showToast } from "vant"
+import { formatActors } from "../../utils/dateFormat"
 
+const router = useRouter()
+const store = useStore()
+
+// 响应式数据
 const loading = ref(false)
 const finished = ref(false)
-const dataList = ref([]) // 电影数据
-const totalCount = ref(0) // 总条数
-const current = ref(1)
+const currentPage = ref(1)
+const showError = ref(false)
 
-const actorFilter = (actors) => {
-  if (!actors) return "暂无主演"
-  return actors.map((item) => item.name).join(" ")
-}
+// 计算属性
+const filmList = computed(() => store.state.film.nowPlayingList)
+const total = computed(() => store.state.film.nowPlayingTotal)
+const cityId = computed(() => store.state.city.cityId)
 
-onMounted(() => {
-  // 首次请求电影数据
-  http({
-    url: `gateway?cityId=310100&pageNum=1&pageSize=10&type=1&k=136082`,
-    headers: {
-      "X-Host": "mall.film-ticket.film.list",
-    },
-  }).then((result) => {
-    const { films, total } = result.data.data
-    dataList.value = films
-    totalCount.value = total
-  })
+// 是否可以加载更多
+const canLoadMore = computed(() => {
+  return filmList.value.length < total.value
 })
 
-// 下拉请求
+// 加载电影列表
+const loadFilmList = async (pageNum = 1, isLoadMore = false) => {
+  try {
+    loading.value = true
+    showError.value = false
+    
+    const result = await store.dispatch("getNowPlayingList", {
+      cityId: cityId.value,
+      pageNum,
+      pageSize: 10,
+    })
+    
+    // 如果没有更多数据
+    if (!result.films || result.films.length === 0) {
+      finished.value = true
+    }
+    
+    loading.value = false
+  } catch (error) {
+    loading.value = false
+    if (pageNum === 1) {
+      showError.value = true
+    } else {
+      showToast(error.message || "加载失败")
+    }
+  }
+}
+
+// 上拉加载更多
 const onLoad = () => {
-  if (
-    dataList.value.length === totalCount.value &&
-    dataList.value.length !== 0
-  ) {
+  if (!canLoadMore.value) {
     finished.value = true
     return
   }
-
-  current.value++
-  http({
-    url: `gateway?cityId=310100&pageNum=${current.value}&pageSize=10&type=1&k=136082`,
-    headers: {
-      "X-Host": "mall.film-ticket.film.list",
-    },
-  }).then((result) => {
-    const { films, total } = result.data.data
-    dataList.value = [...dataList.value, ...films]
-    totalCount.value = total
-    loading.value = false
-  })
+  
+  currentPage.value++
+  loadFilmList(currentPage.value, true)
 }
 
-// 跳转电影详情页
-const router = useRouter()
-const handleClick = (id) => {
-  router.push(`/detail?id=${id}`)
+// 点击电影跳转详情页
+const handleFilmClick = (filmId) => {
+  router.push(`/detail?id=${filmId}`)
 }
+
+// 点击购票按钮
+const handleTicket = (filmId) => {
+  // TODO: 实现购票功能，跳转到影院选择页
+  router.push(`/film/${filmId}/cinemas`)
+}
+
+// 重试加载
+const retry = () => {
+  currentPage.value = 1
+  finished.value = false
+  loadFilmList(1)
+}
+
+// 页面挂载时加载数据
+onMounted(() => {
+  loadFilmList(1)
+})
 </script>
 
 <style lang="less" scoped>
-.van-cell {
-  overflow: hidden;
-  padding: 5px;
-  .movie-img {
-    img {
-      margin-right: 10px;
-      float: left;
-      width: 100px;
-      height: 140px;
+.now-playing-container {
+  background-color: #fff;
+  min-height: 100vh;
+  
+  .film-item {
+    padding: 0;
+    
+    :deep(.van-cell__value) {
+      padding: 15px;
     }
   }
-  .movie-info {
+  
+  .film-content {
     display: flex;
-    flex-direction: column;
     align-items: flex-start;
-    h3 {
-      font-size: 20px;
-      color: rgb(74, 74, 74);
-      margin-bottom: 20px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
+    position: relative;
+    min-height: 94px;
+    
+    .film-poster {
+      flex-shrink: 0;
+      img {
+        width: 66px;
+        height: 94px;
+        border-radius: 4px;
+        object-fit: cover;
+        display: block;
+      }
     }
-    .actor {
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-      margin-bottom: 10px;
+    
+    .film-info {
+      flex: 1;
+      padding: 0 12px;
+      min-width: 0;
+      padding-right: 70px; /* 为购票按钮预留空间 */
+      
+      .film-title {
+        display: flex;
+        align-items: center;
+        margin-bottom: 8px;
+        
+        .name {
+          font-size: 16px;
+          color: #191a1b;
+          font-weight: 500;
+          flex: 1;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+        
+        .item-tag {
+          margin-left: 6px;
+          font-size: 9px;
+          color: #fff;
+          background-color: #d2d6dc;
+          padding: 1px 3px;
+          border-radius: 2px;
+          height: 14px;
+          line-height: 12px;
+          flex-shrink: 0;
+        }
+      }
+      
+      .film-actors,
+      .film-meta {
+        margin-bottom: 6px;
+        
+        .label {
+          font-size: 13px;
+          color: #797d82;
+          line-height: 1.4;
+          display: block;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+        }
+      }
+      
+      .film-rating {
+        display: flex;
+        align-items: baseline;
+        
+        .grade {
+          font-size: 16px;
+          color: #ffb232;
+          font-weight: 500;
+        }
+        
+        .grade-text {
+          font-size: 12px;
+          color: #797d82;
+          margin-left: 2px;
+        }
+      }
+    }
+    
+    .ticket-btn {
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 50px;
+      height: 25px;
+      line-height: 25px;
+      text-align: center;
+      font-size: 13px;
+      color: #ff5722;
+      border: 1px solid #ff5722;
+      border-radius: 2px;
+      cursor: pointer;
+      
+      &:active {
+        background-color: #ff5722;
+        color: #fff;
+      }
+    }
+  }
+  
+  .error-cover {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    
+    .error-content {
+      text-align: center;
+      
+      p {
+        margin: 20px 0;
+        color: #bdc0c5;
+        font-size: 14px;
+      }
     }
   }
 }

@@ -27,6 +27,7 @@ const routes = [
   },
   { path: "/login", component: () => import("../views/Login.vue") },
   { path: "/detail", component: () => import("../views/Detail.vue") },
+  { path: "/film/search", component: () => import("../views/FilmSearch.vue") },
   {
     path: "/:catchAll(.*)",
     redirect: "/film",

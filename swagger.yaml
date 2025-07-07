@@ -1,0 +1,1280 @@
+definitions:
+  entity.CinemaDetailReq:
+    properties:
+      cinemaId:
+        description: 影院ID，必填
+        type: integer
+    required:
+    - cinemaId
+    type: object
+  entity.CinemaFilmScheduleInfo:
+    properties:
+      filmInfo:
+        allOf:
+        - $ref: '#/definitions/entity.Film'
+        description: 影片信息
+      showDateList:
+        description: 放映日期列表
+        items:
+          $ref: '#/definitions/entity.FilmScheduleShowDateInfo'
+        type: array
+    type: object
+  entity.CinemaInfo:
+    properties:
+      address:
+        description: 详细地址
+        type: string
+      businessTime:
+        description: 营业时间
+        type: string
+      childTicketInfo:
+        description: 儿童票信息
+        type: string
+      cinemaCode:
+        description: 影院国资编码
+        type: string
+      cinemaLineId:
+        description: 所属院线ID
+        type: integer
+      cityId:
+        description: 市ID
+        type: integer
+      districtId:
+        description: 区ID
+        type: integer
+      hallInfo:
+        description: 影厅信息
+        type: string
+      id:
+        description: 自增主键
+        type: integer
+      latitude:
+        description: 纬度
+        type: number
+      logo:
+        description: 影院logo
+        type: string
+      longitude:
+        description: 经度
+        type: number
+      lowestPrice:
+        description: 最低价，单位分
+        type: integer
+      mzCityId:
+        description: 卖座城市ID
+        type: integer
+      name:
+        description: 影院名称
+        type: string
+      otherInfo:
+        description: 其他信息
+        type: string
+      parkingInfo:
+        description: 停车信息
+        type: string
+      phoneNum:
+        description: 影院联系电话
+        type: string
+      provinceId:
+        description: 省ID
+        type: integer
+      status:
+        description: 状态：0下线 1正常
+        type: integer
+      the3dGlassesInfo:
+        description: 3D眼镜信息
+        type: string
+    type: object
+  entity.CinemaShowDate:
+    properties:
+      cinemaIdList:
+        description: 影院Id列表，拿到这个数据，根据影院列表数据匹配出影院信息然后渲染
+        items:
+          type: integer
+        type: array
+      showDate:
+        description: 放映日期(秒时间戳)
+        type: integer
+    type: object
+  entity.CityCounty:
+    properties:
+      countyId:
+        description: 区县编码
+        type: integer
+      countyName:
+        description: 区县名称
+        type: string
+    type: object
+  entity.CityInfo:
+    properties:
+      cityId:
+        description: 城市编码
+        type: integer
+      cityName:
+        description: 城市名称
+        type: string
+      cityPinYin:
+        description: 城市拼音
+        type: string
+      isHot:
+        description: 是否热门城市 1:热门 0:非热门
+        type: integer
+    type: object
+  entity.ConfirmOrderReq:
+    properties:
+      channelOrderId:
+        description: 渠道订单ID
+        minLength: 1
+        type: string
+      orderId:
+        description: 订单ID
+        type: string
+    required:
+    - channelOrderId
+    type: object
+  entity.ConfirmOrderResp:
+    type: object
+  entity.Film:
+    properties:
+      actors:
+        description: 主演列表json
+        type: string
+      canPreBook:
+        description: 是否可预定：1可以预定，0不可预定
+        type: integer
+      dimensional:
+        description: 影片类型(2D/3D/4D）
+        type: string
+      director:
+        description: 导演
+        type: string
+      duration:
+        description: 放映时长
+        type: string
+      filmCode:
+        description: 影片国资编码
+        type: string
+      filmId:
+        description: 影片id
+        type: integer
+      grade:
+        description: 评分
+        type: string
+      horizontalCover:
+        description: 横版封面
+        type: string
+      isRecentRelease:
+        description: 是否近期上映：0否 1是
+        type: integer
+      issueCompany:
+        description: 发行公司
+        type: string
+      language:
+        description: 语言
+        type: string
+      movieArea:
+        description: 发行国家
+        type: string
+      movieType:
+        description: 电影类型（动画/悬疑）
+        type: string
+      posters:
+        description: 海报列表json
+        type: string
+      showDate:
+        description: 国内上映时间
+        type: string
+      status:
+        description: 影片状态：0下线 1正常
+        type: integer
+      storyInfo:
+        description: 故事简介
+        type: string
+      verticalCover:
+        description: 竖版封面
+        type: string
+    type: object
+  entity.FilmDetailReq:
+    properties:
+      cityId:
+        description: 城市id 则会判断该影片在该城市该渠道下是否可以预定
+        type: integer
+      filmId:
+        description: 影片id
+        minimum: 1
+        type: integer
+    required:
+    - filmId
+    type: object
+  entity.FilmScheduleShowDateInfo:
+    properties:
+      scheduleIdList:
+        description: 排期ID列表，拿到这个数据，根据排期列表接口批量查询数据
+        items:
+          type: string
+        type: array
+      showDate:
+        description: 放映日期(秒时间戳)
+        type: string
+    type: object
+  entity.GetOrderInfoReq:
+    properties:
+      channelOrderId:
+        description: 渠道订单ID
+        minLength: 1
+        type: string
+      orderId:
+        description: 订单ID
+        type: string
+    required:
+    - channelOrderId
+    type: object
+  entity.ListCinemaFilmScheduleReq:
+    properties:
+      cinemaId:
+        description: 影院ID，必填
+        type: integer
+    required:
+    - cinemaId
+    type: object
+  entity.ListCinemaFilmScheduleResp:
+    properties:
+      list:
+        description: 影院正在上映的影片列表
+        items:
+          $ref: '#/definitions/entity.CinemaFilmScheduleInfo'
+        type: array
+    type: object
+  entity.ListCityCountyReq:
+    properties:
+      cityId:
+        description: 城市编码
+        minimum: 1
+        type: integer
+    required:
+    - cityId
+    type: object
+  entity.ListCityCountyResp:
+    properties:
+      list:
+        description: 区县列表
+        items:
+          $ref: '#/definitions/entity.CityCounty'
+        type: array
+    type: object
+  entity.ListCityResp:
+    properties:
+      list:
+        description: 城市列表
+        items:
+          $ref: '#/definitions/entity.CityInfo'
+        type: array
+    type: object
+  entity.ListFutureFilmReq:
+    properties:
+      cityId:
+        description: 城市id
+        minimum: 1
+        type: integer
+    required:
+    - cityId
+    type: object
+  entity.ListFutureFilmResp:
+    properties:
+      list:
+        description: 影片列表
+        items:
+          $ref: '#/definitions/entity.Film'
+        type: array
+    type: object
+  entity.ListHotFilmReq:
+    properties:
+      cityId:
+        description: 城市id
+        minimum: 1
+        type: integer
+    required:
+    - cityId
+    type: object
+  entity.ListHotFilmResp:
+    properties:
+      list:
+        description: 影片列表
+        items:
+          $ref: '#/definitions/entity.Film'
+        type: array
+    type: object
+  entity.ListScheduleCinemaReq:
+    properties:
+      cityId:
+        description: 城市id
+        minimum: 1
+        type: integer
+      filmId:
+        description: 电影id
+        type: integer
+    required:
+    - cityId
+    type: object
+  entity.ListScheduleCinemaResp:
+    properties:
+      list:
+        description: 影院列表
+        items:
+          $ref: '#/definitions/entity.CinemaInfo'
+        type: array
+      showDateList:
+        description: 排期索引列表
+        items:
+          $ref: '#/definitions/entity.CinemaShowDate'
+        type: array
+    type: object
+  entity.ListScheduleReq:
+    properties:
+      scheduleIds:
+        description: 排期ID列表，必填
+        items:
+          type: string
+        minItems: 1
+        type: array
+    required:
+    - scheduleIds
+    type: object
+  entity.ListScheduleResp:
+    properties:
+      list:
+        description: 排期列表
+        items:
+          $ref: '#/definitions/entity.Schedule'
+        type: array
+    type: object
+  entity.ListScheduleSeatReq:
+    properties:
+      scheduleId:
+        description: 排期id
+        minLength: 1
+        type: string
+    required:
+    - scheduleId
+    type: object
+  entity.ListScheduleSeatResp:
+    properties:
+      seats:
+        description: 座位列表
+        items:
+          $ref: '#/definitions/entity.Seat'
+        type: array
+    type: object
+  entity.LockSeatPriceItem:
+    properties:
+      offerSeatId:
+        description: 座位ID
+        minLength: 1
+        type: string
+      price:
+        description: 结算价格，单位分
+        minimum: 1
+        type: integer
+    required:
+    - offerSeatId
+    - price
+    type: object
+  entity.LockSeatReq:
+    properties:
+      channelOrderId:
+        description: 渠道订单ID (业务订单id需要是唯一的)
+        minLength: 1
+        type: string
+      mobile:
+        description: 手机号
+        minLength: 1
+        type: string
+      scheduleId:
+        description: 排期ID
+        minLength: 1
+        type: string
+      seats:
+        description: 座位列表
+        items:
+          $ref: '#/definitions/entity.LockSeatPriceItem'
+        minItems: 1
+        type: array
+    required:
+    - channelOrderId
+    - mobile
+    - scheduleId
+    - seats
+    type: object
+  entity.LockSeatResp:
+    properties:
+      channelOrderId:
+        description: 渠道订单ID
+        type: string
+      orderId:
+        description: 订单ID
+        type: string
+      seats:
+        description: 座位列表
+        items:
+          $ref: '#/definitions/entity.LockSeatSettlementInfoItem'
+        type: array
+      settleAmount:
+        description: 订单结算金额，单位分
+        type: integer
+    type: object
+  entity.LockSeatSettlementInfoItem:
+    properties:
+      columnId:
+        description: 座位列号
+        type: string
+      offerSeatId:
+        description: 座位ID
+        type: string
+      price:
+        description: 结算价格，单位分
+        type: integer
+      rowId:
+        description: 座位行号
+        type: string
+      sectionId:
+        description: 分区ID
+        type: string
+    type: object
+  entity.OrderInfo:
+    properties:
+      channelOrderId:
+        description: 渠道订单ID
+        type: string
+      cinemaId:
+        description: 影院ID
+        type: integer
+      cinemaName:
+        description: 影院名称
+        type: string
+      confirmCode:
+        description: 取票码
+        type: string
+      filmDimensional:
+        description: 影片维度
+        type: string
+      filmId:
+        description: 影片ID
+        type: integer
+      filmName:
+        description: 影片名称
+        type: string
+      hallId:
+        description: 影厅ID
+        type: string
+      hallName:
+        description: 影厅名称
+        type: string
+      orderId:
+        description: 订单ID
+        type: string
+      orderStatus:
+        description: '订单状态 0: 正在锁座 -1:锁座失败 1:锁座成功 2:出票中 3：出票成功 -3:出票失败 4:已全部退款 5：用户取消
+          6：超时取消 7：等待供应商出票（出票中）'
+        type: integer
+      orderTime:
+        description: 下单时间
+        type: string
+      settleAmount:
+        description: 订单结算金额，单位分
+        type: integer
+      showTime:
+        description: 上映时间
+        type: string
+      sms:
+        description: 短信
+        type: string
+      ticketInfos:
+        description: 票信息列表(扫码入场)
+        items:
+          $ref: '#/definitions/entity.TicketInfo'
+        type: array
+    type: object
+  entity.OrderStatusNotifyReq:
+    properties:
+      channelOrderId:
+        description: 渠道订单ID
+        type: string
+      orderId:
+        description: 订单ID
+        type: string
+      orderStatus:
+        description: 订单状态 订单成功：S, 订单退款：R
+        type: string
+      refundReason:
+        description: 退款原因
+        type: string
+      sign:
+        description: 签名
+        type: string
+    type: object
+  entity.OutPackage:
+    properties:
+      data:
+        description: 实际数据
+      msg:
+        description: 状态消息
+        type: string
+      status:
+        description: 状态码，0表示成功
+        type: integer
+    type: object
+  entity.RefundTicketReq:
+    properties:
+      channelOrderId:
+        description: 渠道订单ID
+        minLength: 1
+        type: string
+      isSettle:
+        description: 是否结算 0：不结算 1：结算
+        type: integer
+      operator:
+        description: 操作人
+        minLength: 1
+        type: string
+      orderId:
+        description: 订单ID
+        type: string
+      reason:
+        description: 退款原因
+        minLength: 1
+        type: string
+      refundAmount:
+        description: 退款金额，单位分 (目前仅支持整单退款，退款金额为订单结算金额)
+        minimum: 1
+        type: integer
+    required:
+    - channelOrderId
+    - operator
+    - reason
+    - refundAmount
+    type: object
+  entity.Schedule:
+    properties:
+      basePrice:
+        description: 基准价格
+        type: integer
+      cinemaName:
+        description: 影院名称
+        type: string
+      cityId:
+        description: 城市ID
+        type: integer
+      closeScheduleTimes:
+        description: 排期关闭时间(分钟)
+        type: integer
+      dimensional:
+        description: 维度(2D/3D/IMAX等)
+        type: string
+      duration:
+        description: 影片时长(分钟)
+        type: integer
+      filmName:
+        description: 影片名称
+        type: string
+      hallId:
+        description: 影厅ID
+        type: string
+      hallName:
+        description: 影厅名称
+        type: string
+      isLockPhone:
+        description: 是否需要手机号(0否,1是)
+        type: integer
+      isOfferGood:
+        description: 是否有第三方小卖品(0否,1是)
+        type: integer
+      isRefund:
+        description: 是否支持退票(0不支持,1支持)
+        type: integer
+      language:
+        description: 语言
+        type: string
+      mzCinemaId:
+        description: 卖座影院ID
+        type: integer
+      mzFilmId:
+        description: 卖座影片ID
+        type: integer
+      offerScheduleId:
+        description: 供应商排期ID
+        type: string
+      overHistoryPriceFlag:
+        description: 是否超过历史平均价格
+        type: boolean
+      scheduleID:
+        description: 排期ID
+        type: string
+      seatUnLockTime:
+        description: 锁位释放时间(分钟)
+        type: integer
+      sectionPrices:
+        description: 分区价格列表
+        items:
+          $ref: '#/definitions/entity.SectionPrice'
+        type: array
+      settlementPrice:
+        description: 结算价格
+        type: integer
+      showDate:
+        description: 放映日期
+        type: string
+      showTime:
+        description: 放映时间
+        type: string
+      status:
+        description: 排期状态(0无效,1有效)
+        type: integer
+      updateTime:
+        description: 更新时间
+        type: string
+    type: object
+  entity.ScheduleDetailReq:
+    properties:
+      scheduleId:
+        description: 排期ID
+        type: string
+    required:
+    - scheduleId
+    type: object
+  entity.Seat:
+    properties:
+      columnId:
+        description: 物理列号
+        type: string
+      columnNum:
+        description: 逻辑列坐标
+        type: integer
+      damagedFlag:
+        description: 座位损坏标志 1:已损坏 0:未损坏
+        type: integer
+      isLocked:
+        description: 座位是否已锁定 1:锁定 0:未锁定
+        type: integer
+      loveIndex:
+        description: 座位类型标识（1,2为情侣座首尾座，其它为普通座位）
+        type: string
+      rowId:
+        description: 物理行号
+        type: string
+      rowNum:
+        description: 逻辑行坐标
+        type: integer
+      seatId:
+        description: 座位id
+        type: string
+      seatName:
+        description: 座位名称，默认是row_id行column_id列
+        type: string
+      sectionId:
+        description: 分区id
+        type: string
+    type: object
+  entity.SectionPrice:
+    properties:
+      price:
+        description: 价格(分)
+        type: integer
+      sectionId:
+        description: 分区id
+        type: string
+    type: object
+  entity.TicketInfo:
+    properties:
+      code:
+        description: 座位票号(扫码入场二维码生成用)
+        type: string
+      columnId:
+        description: 座位列号
+        type: string
+      offerSeatId:
+        description: 座位ID
+        type: string
+      price:
+        description: 结算价格，单位分
+        type: integer
+      rowId:
+        description: 座位行号
+        type: string
+      seatName:
+        description: 座位名称
+        type: string
+      sectionId:
+        description: 分区ID
+        type: string
+    type: object
+  entity.UnlockSeatReq:
+    properties:
+      channelOrderId:
+        description: 渠道订单ID
+        minLength: 1
+        type: string
+      orderId:
+        description: 订单ID
+        type: string
+    required:
+    - channelOrderId
+    type: object
+  entity.UnlockSeatResp:
+    type: object
+host: seat-reserve.newseat
+info:
+  contact:
+    email: support@swagger.io
+    name: API Support
+    url: http://www.swagger.io/support
+  description: |-
+    seat-reserve 项目的Swagger文档
+    X-Token 渠道信息令牌，直接用Base64编码，例如 base64({"bid":1})
+  license:
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: http://swagger.io/terms/
+  title: seat-reserve
+  version: "1.0"
+paths:
+  /api/v1/cinema/detail:
+    post:
+      consumes:
+      - application/json
+      description: 影院详情
+      parameters:
+      - description: 用户token
+        in: header
+        name: X-Token
+        required: true
+        type: string
+      - description: 请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.CinemaDetailReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/entity.OutPackage'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.CinemaInfo'
+              type: object
+      summary: 影院详情
+      tags:
+      - 影院
+  /api/v1/city/list:
+    post:
+      consumes:
+      - application/json
+      description: 获取城市列表
+      parameters:
+      - description: 用户token
+        in: header
+        name: X-Token
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/entity.OutPackage'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.ListCityResp'
+              type: object
+      summary: 获取城市列表
+      tags:
+      - 城市
+  /api/v1/city/list-county:
+    post:
+      consumes:
+      - application/json
+      description: 获取城市区县列表
+      parameters:
+      - description: 用户token
+        in: header
+        name: X-Token
+        required: true
+        type: string
+      - description: 请求参数
+        in: body
+        name: city_id
+        required: true
+        schema:
+          $ref: '#/definitions/entity.ListCityCountyReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/entity.OutPackage'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.ListCityCountyResp'
+              type: object
+      summary: 获取城市区县列表
+      tags:
+      - 城市
+  /api/v1/film/detail:
+    post:
+      consumes:
+      - application/json
+      description: 电影详情
+      parameters:
+      - description: 请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.FilmDetailReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/entity.OutPackage'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Film'
+              type: object
+      summary: 电影详情
+      tags:
+      - 电影
+  /api/v1/film/future-films:
+    post:
+      consumes:
+      - application/json
+      description: 即将上映电影列表
+      parameters:
+      - description: 用户token
+        in: header
+        name: X-Token
+        required: true
+        type: string
+      - description: 请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.ListFutureFilmReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/entity.OutPackage'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.ListFutureFilmResp'
+              type: object
+      summary: 即将上映电影列表
+      tags:
+      - 电影
+  /api/v1/film/hot-films:
+    post:
+      consumes:
+      - application/json
+      description: 热门电影列表
+      parameters:
+      - description: 用户token
+        in: header
+        name: X-Token
+        required: true
+        type: string
+      - description: 请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.ListHotFilmReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/entity.OutPackage'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.ListHotFilmResp'
+              type: object
+      summary: 热门电影列表
+      tags:
+      - 电影
+  /api/v1/order/confirm:
+    post:
+      consumes:
+      - application/json
+      description: 确认订单
+      parameters:
+      - description: 用户token
+        in: header
+        name: X-Token
+        required: true
+        type: string
+      - description: 请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.ConfirmOrderReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/entity.OutPackage'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.ConfirmOrderResp'
+              type: object
+      summary: 确认订单
+      tags:
+      - 订单
+  /api/v1/order/info:
+    post:
+      consumes:
+      - application/json
+      description: 根据请求参数获取订单详细信息
+      parameters:
+      - description: 用户token
+        in: header
+        name: X-Token
+        required: true
+        type: string
+      - description: 请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.GetOrderInfoReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功获取订单信息
+          schema:
+            allOf:
+            - $ref: '#/definitions/entity.OutPackage'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.OrderInfo'
+              type: object
+      summary: 获取订单信息
+      tags:
+      - 订单
+  /api/v1/order/lock-seat:
+    post:
+      consumes:
+      - application/json
+      description: 锁定座位
+      parameters:
+      - description: 用户token
+        in: header
+        name: X-Token
+        required: true
+        type: string
+      - description: 请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.LockSeatReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/entity.OutPackage'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.LockSeatResp'
+              type: object
+      summary: 锁定座位
+      tags:
+      - 订单
+  /api/v1/order/order-status-notify:
+    post:
+      consumes:
+      - application/json
+      description: '订单状态通知 1）渠道接收到接口请求返回:{"status": 0}, 表示接收成功， 否者平台每隔2分钟发送一次请求，最多发送20次
+        2）为了保障账户的通信的安全，防止别人伪造接口访问，当渠道方接到轩夸推送的订单状态的时候， 需要渠道方通过反查询订单详情接口的订单状态，来确认推送信息的合法性'
+      parameters:
+      - description: 请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.OrderStatusNotifyReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            $ref: '#/definitions/entity.OutPackage'
+      summary: 订单状态通知 (平台主动通知渠道订单状态的变化)（暂未实现）
+      tags:
+      - 订单
+  /api/v1/order/refund-ticket:
+    post:
+      consumes:
+      - application/json
+      description: 整单退票
+      parameters:
+      - description: 用户token
+        in: header
+        name: X-Token
+        required: true
+        type: string
+      - description: 请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.RefundTicketReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            $ref: '#/definitions/entity.OutPackage'
+      summary: 整单退票
+      tags:
+      - 订单
+  /api/v1/order/unlock-seat:
+    post:
+      consumes:
+      - application/json
+      description: 解锁座位
+      parameters:
+      - description: 用户token
+        in: header
+        name: X-Token
+        required: true
+        type: string
+      - description: 请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.UnlockSeatReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/entity.OutPackage'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.UnlockSeatResp'
+              type: object
+      summary: 解锁座位
+      tags:
+      - 订单
+  /api/v1/schedule/cinema/film/list:
+    post:
+      consumes:
+      - application/json
+      description: 影院影片排期列表
+      parameters:
+      - description: 用户token
+        in: header
+        name: X-Token
+        required: true
+        type: string
+      - description: 请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.ListCinemaFilmScheduleReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/entity.OutPackage'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.ListCinemaFilmScheduleResp'
+              type: object
+      summary: 影院影片排期列表
+      tags:
+      - 排期
+  /api/v1/schedule/cinema/list:
+    post:
+      consumes:
+      - application/json
+      description: 近期有排片的影院
+      parameters:
+      - description: 用户token
+        in: header
+        name: X-Token
+        required: true
+        type: string
+      - description: 请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.ListScheduleCinemaReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/entity.OutPackage'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.ListScheduleCinemaResp'
+              type: object
+      summary: 近期有排片的影院
+      tags:
+      - 排期
+  /api/v1/schedule/detail:
+    post:
+      consumes:
+      - application/json
+      description: 排期详情
+      parameters:
+      - description: 用户token
+        in: header
+        name: X-Token
+        required: true
+        type: string
+      - description: 请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.ScheduleDetailReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/entity.OutPackage'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.Schedule'
+              type: object
+      summary: 排期详情
+      tags:
+      - 排期
+  /api/v1/schedule/list:
+    post:
+      consumes:
+      - application/json
+      description: 排期列表
+      parameters:
+      - description: 用户token
+        in: header
+        name: X-Token
+        required: true
+        type: string
+      - description: 请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.ListScheduleReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/entity.OutPackage'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.ListScheduleResp'
+              type: object
+      summary: 排期列表
+      tags:
+      - 排期
+  /api/v1/schedule/seat:
+    post:
+      consumes:
+      - application/json
+      description: 影院排期座位图
+      parameters:
+      - description: 用户token
+        in: header
+        name: X-Token
+        required: true
+        type: string
+      - description: 请求参数
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/entity.ListScheduleSeatReq'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            allOf:
+            - $ref: '#/definitions/entity.OutPackage'
+            - properties:
+                data:
+                  $ref: '#/definitions/entity.ListScheduleSeatResp'
+              type: object
+      summary: 影院排期座位图
+      tags:
+      - 排期
+  /api/v1/timer/system-unlock-seat:
+    get:
+      consumes:
+      - application/json
+      description: 系统自动解锁座位定时器
+      parameters:
+      - description: 定时器签名
+        in: query
+        name: timerSign
+        required: true
+        type: string
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: 成功
+          schema:
+            $ref: '#/definitions/entity.OutPackage'
+      summary: 系统自动解锁座位定时器
+      tags:
+      - 订单定时器
+swagger: "2.0"

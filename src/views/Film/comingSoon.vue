@@ -161,19 +161,24 @@ onMounted(() => {
     display: flex;
     align-items: flex-start;
     position: relative;
+    min-height: 94px; /* 确保最小高度 */
     
     .film-poster {
+      flex-shrink: 0; /* 防止海报被压缩 */
       img {
         width: 66px;
         height: 94px;
         border-radius: 4px;
         object-fit: cover;
+        display: block; /* 避免图片底部空隙 */
       }
     }
     
     .film-info {
       flex: 1;
       padding: 0 12px;
+      min-width: 0; /* 解决flex子元素溢出问题 */
+      padding-right: 70px; /* 为预购按钮预留空间 */
       
       .film-title {
         display: flex;
@@ -184,7 +189,7 @@ onMounted(() => {
           font-size: 16px;
           color: #191a1b;
           font-weight: 500;
-          max-width: calc(100% - 40px);
+          flex: 1;
           overflow: hidden;
           text-overflow: ellipsis;
           white-space: nowrap;
@@ -199,6 +204,7 @@ onMounted(() => {
           border-radius: 2px;
           height: 14px;
           line-height: 12px;
+          flex-shrink: 0; /* 防止标签被压缩 */
         }
       }
       
@@ -220,8 +226,9 @@ onMounted(() => {
     
     .presale-btn {
       position: absolute;
-      right: 15px;
-      top: 35px;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%); /* 垂直居中 */
       width: 50px;
       height: 25px;
       line-height: 25px;
