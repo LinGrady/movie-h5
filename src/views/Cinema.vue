@@ -14,7 +14,12 @@
     </van-nav-bar>
     <!-- 影院列表 -->
     <div class="cinema">
-      <ul>
+      <!-- 调试信息 -->
+      <div v-if="cinemaList.length === 0" style="padding: 20px; text-align: center; color: #999;">
+        暂无影院数据，cityId: {{ cityId }}
+      </div>
+      
+      <ul v-if="cinemaList.length > 0">
         <li 
           v-for="item in cinemaList" 
           :key="item.cinemaId || item.id" 
@@ -57,7 +62,18 @@ const cityId = computed(() => store.state.city.cityId)
 const cityName = computed(() => store.state.city.cityName)
 
 // 请求影院列表数据
-const getCinemaList = () => store.dispatch("getCinemaList", { cityId: cityId.value })
+const getCinemaList = async () => {
+  try {
+    console.log("🏛️ 开始加载影院列表, cityId:", cityId.value)
+    const result = await store.dispatch("getCinemaList", { cityId: cityId.value })
+    console.log("✅ 影院列表加载成功:", result)
+    console.log("📋 影院数据:", cinemaList.value)
+    return result
+  } catch (error) {
+    console.error("❌ 影院列表加载失败:", error)
+    throw error
+  }
+}
 
 // 初始化滚动条
 const initializeScroll = () => {
@@ -66,16 +82,21 @@ const initializeScroll = () => {
       fade: true,
     },
     mouseWheel: true,
+    click: true, // 允许点击事件
+    tap: true,   // 允许tap事件
   })
 }
 
-onMounted(() => {
+onMounted(async () => {
   // 无需监听 cinemaList 的变化
   // 理由是切换路由选择城市，只会渲染一次
-  getCinemaList(cityId.value).then(() => {
-    // 加载完 cinamaList 以后再初始化 scroll 组件
+  try {
+    await getCinemaList()
+    // 加载完 cinemaList 以后再初始化 scroll 组件
     initializeScroll()
-  })
+  } catch (error) {
+    console.error("初始化影院列表失败:", error)
+  }
 })
 
 // 点击nav-bar右侧搜索 跳转到Search.vue页面
@@ -89,7 +110,15 @@ const onClickLeft = () => {
 
 // 点击影院跳转详情页
 const handleCinemaClick = (cinema) => {
+  console.log("🏛️ 点击影院:", cinema)
   const cinemaId = cinema.cinemaId || cinema.id
+  console.log("🔢 影院ID:", cinemaId)
+  
+  if (!cinemaId) {
+    console.error("❌ 影院ID为空:", cinema)
+    return
+  }
+  
   router.push(`/cinema/${cinemaId}`)
 }
 </script>

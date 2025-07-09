@@ -48,6 +48,19 @@
         </div>
       </div>
       
+      <!-- 无座位图状态 -->
+      <div v-else-if="!loading" class="no-seats">
+        <van-empty description="暂无座位信息">
+          <template #image>
+            <van-icon name="location-o" size="60" color="#dcdee0" />
+          </template>
+          <p>座位图加载失败</p>
+          <van-button type="primary" size="small" @click="loadSeatMap">
+            重新加载
+          </van-button>
+        </van-empty>
+      </div>
+      
       <!-- 座位图例 -->
       <div class="seat-legend">
         <div class="legend-item">
@@ -131,16 +144,44 @@ const seatRows = computed(() => {
     rows[seat.rowId].seats.push(seat)
   })
   
-  // 按行号排序
-  return Object.values(rows).sort((a, b) => a.rowId.localeCompare(b.rowId))
+  // 按行号排序，并对每行的座位按列号排序
+  return Object.values(rows)
+    .sort((a, b) => {
+      // 尝试数字排序，失败则使用字符串排序
+      const aNum = parseInt(a.rowId)
+      const bNum = parseInt(b.rowId)
+      if (!isNaN(aNum) && !isNaN(bNum)) {
+        return aNum - bNum
+      }
+      return a.rowId.localeCompare(b.rowId)
+    })
+    .map(row => ({
+      ...row,
+      seats: row.seats.sort((a, b) => {
+        const aNum = parseInt(a.columnId)
+        const bNum = parseInt(b.columnId)
+        if (!isNaN(aNum) && !isNaN(bNum)) {
+          return aNum - bNum
+        }
+        return a.columnId.localeCompare(b.columnId)
+      })
+    }))
 })
 
 // 计算总价
 const totalPrice = computed(() => {
   return selectedSeats.value.reduce((total, seat) => {
-    // 假设所有座位价格相同，实际应该根据分区价格计算
-    const basePrice = scheduleDetail.value?.basePrice || 0
-    return total + (basePrice / 100)
+    // 根据分区价格计算，如果没有则使用基准价格
+    let seatPrice = scheduleDetail.value?.basePrice || 0
+    
+    if (scheduleDetail.value?.sectionPrices && seat.sectionId) {
+      const sectionPrice = scheduleDetail.value.sectionPrices.find(sp => sp.sectionId === seat.sectionId)
+      if (sectionPrice) {
+        seatPrice = sectionPrice.price
+      }
+    }
+    
+    return total + (seatPrice / 100)
   }, 0)
 })
 
@@ -164,7 +205,13 @@ const getSeatClass = (seat) => {
 // 处理座位点击
 const handleSeatClick = (seat) => {
   // 不可选择的座位
-  if (seat.damagedFlag === 1 || seat.isLocked === 1) {
+  if (seat.damagedFlag === 1) {
+    showToast("该座位已损坏，无法选择")
+    return
+  }
+  
+  if (seat.isLocked === 1) {
+    showToast("该座位已被其他用户选择")
     return
   }
   
@@ -173,6 +220,10 @@ const handleSeatClick = (seat) => {
   if (index > -1) {
     // 取消选择
     selectedSeats.value.splice(index, 1)
+    showToast({
+      message: `已取消 ${seat.rowId}排${seat.columnId}座`,
+      duration: 1000
+    })
   } else {
     // 选择座位，限制最多4个
     if (selectedSeats.value.length >= 4) {
@@ -180,6 +231,10 @@ const handleSeatClick = (seat) => {
       return
     }
     selectedSeats.value.push(seat)
+    showToast({
+      message: `已选择 ${seat.rowId}排${seat.columnId}座`,
+      duration: 1000
+    })
   }
 }
 
@@ -200,15 +255,106 @@ const formatShowTime = (showDate, showTime) => {
   return `${dateStr} ${showTime}`
 }
 
+// 获取或提示输入手机号
+const getMobileNumber = () => {
+  // 这里可以从用户信息获取，或者弹出输入框
+  // 暂时使用模拟手机号，实际项目中应该从用户系统获取
+  return "13800138000"
+}
+
 // 确认选座
-const handleConfirm = () => {
+const handleConfirm = async () => {
   if (selectedSeats.value.length === 0) {
     showToast("请先选择座位")
     return
   }
   
-  // TODO: 实现锁座和跳转到订单确认页
-  showToast("功能开发中，敬请期待")
+  // 生成唯一的渠道订单ID
+  const channelOrderId = `H5_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
+  
+  // 准备座位数据
+  const seatData = selectedSeats.value.map(seat => {
+    // 根据分区价格计算，如果没有则使用基准价格
+    let seatPrice = scheduleDetail.value?.basePrice || 0
+    
+    if (scheduleDetail.value?.sectionPrices && seat.sectionId) {
+      const sectionPrice = scheduleDetail.value.sectionPrices.find(sp => sp.sectionId === seat.sectionId)
+      if (sectionPrice) {
+        seatPrice = sectionPrice.price
+      }
+    }
+    
+    return {
+      offerSeatId: seat.seatId,
+      price: seatPrice
+    }
+  })
+  
+  // 获取手机号
+  const mobile = getMobileNumber()
+  
+  try {
+    loading.value = true
+    
+    console.log("🔒 开始锁座...")
+    console.log("排期ID:", route.params.scheduleId)
+    console.log("座位数据:", seatData)
+    console.log("手机号:", mobile)
+    console.log("渠道订单ID:", channelOrderId)
+    
+    // 调用锁座API
+    const lockResult = await store.dispatch("lockSeats", {
+      scheduleId: route.params.scheduleId,
+      seats: seatData,
+      mobile: mobile,
+      channelOrderId: channelOrderId
+    })
+    
+    console.log("✅ 锁座成功:", lockResult)
+    
+    // 保存锁座信息到store，供订单确认页面使用
+    await store.dispatch("saveLockInfo", lockResult)
+    
+    showToast({
+      message: "锁座成功！正在跳转...",
+      duration: 2000
+    })
+    
+    // 稍微延迟跳转，让用户看到成功提示
+    setTimeout(() => {
+      // 跳转到订单确认页面
+      router.push({
+        path: '/order/confirm',
+        query: {
+          orderId: lockResult.orderId,
+          channelOrderId: lockResult.channelOrderId,
+          scheduleId: route.params.scheduleId
+        }
+      })
+    }, 1000)
+    
+  } catch (error) {
+    console.error("❌ 锁座失败:", error)
+    
+    // 根据错误类型显示不同的提示
+    let errorMessage = "锁座失败，请重试"
+    if (error.message.includes("座位已被锁定")) {
+      errorMessage = "所选座位已被其他用户锁定，请重新选择"
+      // 重新加载座位图
+      await loadSeatMap()
+      // 清空已选座位
+      selectedSeats.value = []
+    } else if (error.message.includes("网络")) {
+      errorMessage = "网络连接失败，请检查网络后重试"
+    }
+    
+    showToast({
+      message: errorMessage,
+      duration: 3000
+    })
+  } finally {
+    loading.value = false
+  }
 }
 
 // 返回
@@ -222,8 +368,11 @@ const loadScheduleDetail = async () => {
     loading.value = true
     const scheduleId = route.params.scheduleId
     
-    await store.dispatch("getScheduleDetail", scheduleId)
+    console.log("🎬 加载排期详情, scheduleId:", scheduleId)
+    const scheduleData = await store.dispatch("getScheduleDetail", scheduleId)
+    console.log("📋 排期详情数据:", scheduleData)
   } catch (error) {
+    console.error("获取排期详情失败:", error)
     showToast(error.message || "获取排期详情失败")
   } finally {
     loading.value = false
@@ -234,9 +383,12 @@ const loadScheduleDetail = async () => {
 const loadSeatMap = async () => {
   try {
     const scheduleId = route.params.scheduleId
-    await store.dispatch("getSeatMap", scheduleId)
+    console.log("🪑 加载座位图, scheduleId:", scheduleId)
+    const seatData = await store.dispatch("getSeatMap", scheduleId)
+    console.log("🎭 座位图数据:", seatData)
   } catch (error) {
     console.warn("获取座位图失败:", error)
+    showToast("获取座位图失败，请重试")
   }
 }
 
@@ -366,6 +518,11 @@ onMounted(async () => {
           }
         }
       }
+    }
+    
+    .no-seats {
+      padding: 60px 20px;
+      text-align: center;
     }
     
     .seat-legend {

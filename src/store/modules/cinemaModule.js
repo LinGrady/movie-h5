@@ -69,10 +69,6 @@ const cinemaModule = {
         const result = await http({
           url: `/api/v1/schedule/cinema/list`,
           method: 'POST',
-          headers: {
-            'X-Token': 'base64({"bid":1})', // 根据实际情况配置
-            'Content-Type': 'application/json',
-          },
           data: {
             cityId: parseInt(cityId),
             filmId: filmId ? parseInt(filmId) : undefined,
@@ -111,10 +107,6 @@ const cinemaModule = {
         const result = await http({
           url: `/api/v1/cinema/detail`,
           method: 'POST',
-          headers: {
-            'X-Token': 'base64({"bid":1})',
-            'Content-Type': 'application/json',
-          },
           data: {
             cinemaId: parseInt(cinemaId),
           },
@@ -133,10 +125,6 @@ const cinemaModule = {
         const result = await http({
           url: `/api/v1/schedule/cinema/film/list`,
           method: 'POST',
-          headers: {
-            'X-Token': 'base64({"bid":1})',
-            'Content-Type': 'application/json',
-          },
           data: {
             cinemaId: parseInt(cinemaId),
           },
@@ -156,10 +144,6 @@ const cinemaModule = {
         const result = await http({
           url: `/api/v1/schedule/detail`,
           method: 'POST',
-          headers: {
-            'X-Token': 'base64({"bid":1})',
-            'Content-Type': 'application/json',
-          },
           data: {
             scheduleId: scheduleId,
           },
@@ -178,10 +162,6 @@ const cinemaModule = {
         const result = await http({
           url: `/api/v1/schedule/seat`,
           method: 'POST',
-          headers: {
-            'X-Token': 'base64({"bid":1})',
-            'Content-Type': 'application/json',
-          },
           data: {
             scheduleId: scheduleId,
           },
@@ -192,6 +172,63 @@ const cinemaModule = {
         return seats
       } catch (error) {
         throw new Error("获取座位图失败")
+      }
+    },
+    
+    // 批量获取排期详情列表（新增）
+    async getScheduleList({ commit }, scheduleIds) {
+      try {
+        const result = await http({
+          url: `/api/v1/schedule/list`,
+          method: 'POST',
+          data: {
+            scheduleIds: scheduleIds,
+          },
+        })
+        
+        const schedules = result.data.data.list || []
+        commit("setScheduleList", schedules)
+        return schedules
+      } catch (error) {
+        throw new Error("获取排期列表失败")
+      }
+    },
+    
+    // 锁定座位（新增）
+    async lockSeats({ commit }, { scheduleId, seats, mobile, channelOrderId }) {
+      try {
+        const result = await http({
+          url: `/api/v1/order/lock-seat`,
+          method: 'POST',
+          data: {
+            scheduleId: scheduleId,
+            seats: seats, // 格式: [{ offerSeatId: string, price: number }]
+            mobile: mobile,
+            channelOrderId: channelOrderId,
+          },
+        })
+        
+        return result.data.data
+      } catch (error) {
+        throw new Error("锁座失败: " + (error.response?.data?.msg || error.message))
+      }
+    },
+    
+    // 解锁座位（新增）
+    async unlockSeats({ commit }, { channelOrderId, orderId }) {
+      try {
+        const result = await http({
+          url: `/api/v1/order/unlock-seat`,
+          method: 'POST',
+          data: {
+            channelOrderId: channelOrderId,
+            orderId: orderId,
+          },
+        })
+        
+        return result.data.data
+      } catch (error) {
+        throw new Error("解锁座位失败")
       }
     },
     

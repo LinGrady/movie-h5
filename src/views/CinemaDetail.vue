@@ -68,13 +68,24 @@
               <!-- 电影信息 -->
               <div class="film-info">
                 <div class="film-poster">
-                  <img :src="filmSchedule.filmInfo.poster" :alt="filmSchedule.filmInfo.name" />
+                  <template v-if="filmSchedule.filmInfo.verticalCover || filmSchedule.filmInfo.poster">
+                    <img 
+                      :src="filmSchedule.filmInfo.verticalCover || filmSchedule.filmInfo.poster" 
+                      :alt="filmSchedule.filmInfo.name"
+                      @error="handleImageError"
+                    />
+                  </template>
+                  <template v-else>
+                    <div class="poster-placeholder">
+                      <van-icon name="photo-o" size="30" color="#dcdee0" />
+                    </div>
+                  </template>
                 </div>
                 <div class="film-details">
                   <h3 class="film-name">{{ filmSchedule.filmInfo.name }}</h3>
                   <div class="film-meta">
                     <span>{{ filmSchedule.filmInfo.dimensional }}</span>
-                    <span>{{ filmSchedule.filmInfo.duration }}分钟</span>
+                    <span v-if="filmSchedule.filmInfo.duration">{{ filmSchedule.filmInfo.duration }}分钟</span>
                     <span v-if="filmSchedule.filmInfo.grade">{{ filmSchedule.filmInfo.grade }}分</span>
                   </div>
                 </div>
@@ -92,13 +103,27 @@
                   </div>
                   <div class="schedule-times">
                     <div 
-                      v-for="scheduleId in dateInfo.scheduleIdList" 
-                      :key="scheduleId"
+                      v-for="schedule in getSchedulesForDate(dateInfo.scheduleIdList)" 
+                      :key="schedule.scheduleID || schedule.id"
                       class="schedule-time-btn"
-                      @click="handleScheduleClick(scheduleId)"
+                      @click="handleScheduleClick(schedule.scheduleID || schedule.id)"
                     >
-                      加载中...
+                      <div class="time">{{ schedule.showTime || '时间待定' }}</div>
+                      <div class="price">¥{{ schedule.basePrice ? (schedule.basePrice / 100).toFixed(0) : '价格待定' }}</div>
                     </div>
+                    
+                    <!-- 如果没有排期详情，显示基本信息 -->
+                    <template v-if="getSchedulesForDate(dateInfo.scheduleIdList).length === 0">
+                      <div 
+                        v-for="scheduleId in dateInfo.scheduleIdList"
+                        :key="scheduleId"
+                        class="schedule-time-btn loading"
+                        @click="handleScheduleClick(scheduleId)"
+                      >
+                        <div class="time">加载中...</div>
+                        <div class="price">¥--</div>
+                      </div>
+                    </template>
                   </div>
                 </div>
               </div>
@@ -107,7 +132,15 @@
           
           <!-- 无排期状态 -->
           <div v-else-if="!loading" class="no-schedules">
-            <van-empty description="暂无电影排期" />
+            <van-empty description="暂无电影排期">
+              <template #image>
+                <van-icon name="tv-o" size="60" color="#dcdee0" />
+              </template>
+              <p>该影院暂无电影排期</p>
+              <van-button type="primary" size="small" @click="loadCinemaSchedules">
+                重新加载
+              </van-button>
+            </van-empty>
           </div>
         </van-tab>
       </van-tabs>
@@ -141,6 +174,7 @@ const filmSchedules = computed(() => {
   const cinemaId = route.params.id
   return store.state.cinema.cinemaSchedules[cinemaId] || []
 })
+const scheduleList = computed(() => store.state.cinema.scheduleList)
 
 // 获取影院详情
 const loadCinemaDetail = async () => {
@@ -160,7 +194,29 @@ const loadCinemaDetail = async () => {
 const loadCinemaSchedules = async () => {
   try {
     const cinemaId = route.params.id
-    await store.dispatch("getCinemaFilmSchedules", cinemaId)
+    const schedules = await store.dispatch("getCinemaFilmSchedules", cinemaId)
+    
+    console.log("📅 影院排期数据:", schedules)
+    
+    // 收集所有排期ID
+    const allScheduleIds = []
+    schedules.forEach(filmSchedule => {
+      if (filmSchedule.showDateList && Array.isArray(filmSchedule.showDateList)) {
+        filmSchedule.showDateList.forEach(dateInfo => {
+          if (dateInfo.scheduleIdList && Array.isArray(dateInfo.scheduleIdList)) {
+            allScheduleIds.push(...dateInfo.scheduleIdList)
+          }
+        })
+      }
+    })
+    
+    console.log("🎬 收集到的排期ID:", allScheduleIds)
+    
+    // 批量获取排期详情
+    if (allScheduleIds.length > 0) {
+      const scheduleDetails = await store.dispatch("getScheduleList", allScheduleIds)
+      console.log("⏰ 排期详情数据:", scheduleDetails)
+    }
   } catch (error) {
     console.warn("获取排期失败:", error)
   }
@@ -168,17 +224,40 @@ const loadCinemaSchedules = async () => {
 
 // 格式化排期日期
 const formatScheduleDate = (dateStr) => {
-  const date = dayjs(dateStr)
-  const today = dayjs()
-  
-  if (date.isSame(today, 'day')) {
-    return '今天 ' + date.format('MM-DD')
-  } else if (date.isSame(today.add(1, 'day'), 'day')) {
-    return '明天 ' + date.format('MM-DD')
-  } else {
-    const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
-    return date.format('MM-DD') + ' ' + weekDays[date.day()]
+  try {
+    // 处理时间戳格式（秒）
+    let date
+    if (typeof dateStr === 'number' || /^\d+$/.test(dateStr)) {
+      date = dayjs.unix(parseInt(dateStr))
+    } else {
+      date = dayjs(dateStr)
+    }
+    
+    if (!date.isValid()) {
+      return '日期待定'
+    }
+    
+    const today = dayjs()
+    
+    if (date.isSame(today, 'day')) {
+      return '今天 ' + date.format('MM-DD')
+    } else if (date.isSame(today.add(1, 'day'), 'day')) {
+      return '明天 ' + date.format('MM-DD')
+    } else {
+      const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六']
+      return date.format('MM-DD') + ' ' + weekDays[date.day()]
+    }
+  } catch (error) {
+    console.warn('日期格式化失败:', dateStr, error)
+    return '日期待定'
   }
+}
+
+// 根据排期ID列表获取对应的排期详情
+const getSchedulesForDate = (scheduleIds) => {
+  return scheduleIds.map(scheduleId => {
+    return scheduleList.value.find(schedule => schedule.scheduleID === scheduleId)
+  }).filter(Boolean) // 过滤掉undefined项目
 }
 
 // 切换标签
@@ -208,6 +287,19 @@ const callCinema = () => {
 // 返回
 const goBack = () => {
   router.back()
+}
+
+// 处理图片加载错误
+const handleImageError = (event) => {
+  // 隐藏图片，显示占位图标
+  event.target.style.display = 'none'
+  const placeholder = event.target.parentNode.querySelector('.poster-placeholder')
+  if (!placeholder) {
+    const div = document.createElement('div')
+    div.className = 'poster-placeholder'
+    div.innerHTML = '<i class="van-icon van-icon-photo-o" style="font-size: 30px; color: #dcdee0;"></i>'
+    event.target.parentNode.appendChild(div)
+  }
 }
 
 // 页面挂载
@@ -314,6 +406,17 @@ onMounted(async () => {
               border-radius: 4px;
               object-fit: cover;
             }
+            
+            .poster-placeholder {
+              width: 60px;
+              height: 85px;
+              border-radius: 4px;
+              background-color: #f7f8fa;
+              display: flex;
+              align-items: center;
+              justify-content: center;
+              border: 1px solid #ebedf0;
+            }
           }
           
           .film-details {
@@ -364,17 +467,46 @@ onMounted(async () => {
               
               .schedule-time-btn {
                 min-width: 80px;
-                padding: 8px 12px;
+                padding: 6px 8px;
                 font-size: 12px;
                 color: #1989fa;
                 border: 1px solid #1989fa;
                 border-radius: 4px;
                 text-align: center;
                 cursor: pointer;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                
+                .time {
+                  font-weight: 500;
+                  margin-bottom: 2px;
+                }
+                
+                .price {
+                  font-size: 10px;
+                  color: #ff6b35;
+                }
                 
                 &:active {
                   background-color: #1989fa;
                   color: #fff;
+                  
+                  .price {
+                    color: #fff;
+                  }
+                }
+                
+                &.loading {
+                  background-color: #f7f8fa;
+                  color: #c8c9cc;
+                  border-color: #e1e4e8;
+                  cursor: default;
+                  
+                  &:active {
+                    background-color: #f7f8fa;
+                    color: #c8c9cc;
+                  }
                 }
               }
             }

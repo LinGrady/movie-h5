@@ -33,6 +33,10 @@ const routes = [
     path: "/schedule/:scheduleId/seat",
     component: () => import("../views/ScheduleDetail.vue"),
   },
+  {
+    path: "/order/confirm",
+    component: () => import("../views/OrderConfirm.vue"),
+  },
   { path: "/login", component: () => import("../views/Login.vue") },
   { path: "/detail", component: () => import("../views/Detail.vue") },
   { path: "/film/search", component: () => import("../views/FilmSearch.vue") },

@@ -209,6 +209,7 @@ onMounted(() => {
       
       .film-actors,
       .film-premiere {
+        display: flex;
         margin-bottom: 6px;
         
         .label {
